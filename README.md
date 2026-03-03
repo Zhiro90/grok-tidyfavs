@@ -10,7 +10,7 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 
 * **Smart Filtering:** Automatically hides images in your "All" view if they are already saved in a specific folder. Simply visit your custom folders; the script automatically learns and memorizes which images are organized without any manual input.
 * **Floating UI:** A minimalist toggle button in the bottom right corner lets you instantly show or hide organized images.
-* **Memory Management:** Includes a quick reset button with elegant toast notifications to wipe the script's memory and start fresh.
+* **Memory Management:** Includes a quick reset button with a toast notifications to wipe the script's memory and start fresh.
 
 ## 📥 Installation
 
@@ -29,4 +29,3 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 
 ***
 *Made with 🤍 for the Grok community.*
-*Source code hosted on [GitHub](https://github.com/Zhiro90/grok-tidyfavs).*
