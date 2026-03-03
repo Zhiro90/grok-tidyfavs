@@ -24,8 +24,14 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 1. Navigate to your [Grok.com](https://grok.com/) favorites or collection page.
 2. Open your custom folders first. The script will silently scan and memorize the images inside them.
 3. Return to the **"All"** tab. The script will automatically hide the images you just memorized.
-4. Click the floating **👁️ button** at the bottom right to toggle the visibility of organized images.
-5. The script only monitors additions, so if you remove a creation from a folder, click the **Reset (🗑️) button** to clear the local memory, otherwise it'll remain hidden everywhere.
+4. Masonry Auto-Fix: When images are hidden, the script forces the grid layout to redraw so you don't end up with weird empty gaps on the page. Works on firefox, a little buggy on chrome, haven't tested on edge. You can do a quick resize to force it.
+5. Click the floating **👁️ button** at the bottom right to toggle the visibility of organized images.
+6. The script only monitors additions, so if you remove a creation from a folder, click the **Reset (🗑️) button** to clear the local memory, otherwise it'll remain hidden everywhere.
 
+## 🗺️ Roadmap
+
+* **Scan Notifications:** Implement toast alerts to notify the user whenever new folders are successfully scanned and added to memory.
+* **Thumbnail Restructuring:** Improve the grid re-rendering logic to handle thumbnail displacement more smoothly when hiding multiple items.
+  
 ***
 *Made with 🤍 for the Grok community.*
