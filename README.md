@@ -4,7 +4,7 @@
 
 A lightweight UserScript for Grok/Imagine Favorites section that automatically hides images in your "All" feed once they have been assigned to a custom folder, keeping your workspace clean and organized.
 
-https://github.com/Zhiro90/grok-tidyfavs/raw/main/pics/preview720.mp4
+https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 
 ## ✨ Features
 
