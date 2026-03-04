@@ -21,8 +21,8 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 
 ## 🛠️ Usage
 
-1. Navigate to your [Grok.com](https://grok.com/) favorites or collection page.
-2. Open your custom folders first. The script will silently scan and memorize the images inside them.
+1. Navigate to your [Grok.com](https://grok.com/) favorites or collection page (language must be set to english).
+2. Go to your custom folders first and scroll to the end of each one (to lazyload every image). The script will silently scan and memorize the images inside them.
 3. Return to the **"All"** tab. The script will automatically hide the images you just memorized.
 4. Masonry Auto-Fix: When images are hidden, the script forces the grid layout to redraw so you don't end up with weird empty gaps on the page. Works on firefox, a little buggy on chrome, haven't tested on edge. You can do a quick resize to force it.
 5. Click the floating **👁️ button** at the bottom right to toggle the visibility of organized images.
@@ -31,6 +31,8 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 ## 🗺️ Roadmap
 
 * **Scan Notifications:** Implement toast alerts to notify the user whenever new folders are successfully scanned and added to memory.
+* **Scan entire folder:** Currently, folders need to be scrolled all the way down to lazy load all creations, working on a fix.
+* **Any language:** Current workflow needs the default folder to be called "All", so, english only. currently working on a fix.
 * **Thumbnail Restructuring:** Improve the grid re-rendering logic to handle thumbnail displacement more smoothly when hiding multiple items.
   
 ***
