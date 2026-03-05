@@ -23,10 +23,9 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 
 1. Navigate to your [Grok.com](https://grok.com/) favorites or collection page (language must be set to english).
 2. Go to your custom folders first and scroll to the end of each one (to lazyload every image). The script will silently scan and memorize the images inside them.
-3. Return to the **"All"** tab. The script will automatically hide the images you just memorized.
-4. Masonry Auto-Fix: When images are hidden, the script forces the grid layout to redraw so you don't end up with weird empty gaps on the page. Works on firefox, a little buggy on chrome, haven't tested on edge. You can do a quick resize to force it.
-5. Click the floating **👁️ button** at the bottom right to toggle the visibility of organized images.
-6. The script only monitors additions, so if you remove a creation from a folder, click the **Reset (🗑️) button** to clear the local memory, otherwise it'll remain hidden everywhere.
+3. Return to the **"All"** tab. The script will automatically hide the images you just memorized and collapse the empty spaces thgough a forced the grid layout to redraw. This works on firefox, a little buggy on chrome, haven't tested on edge. You can do a quick resize (CTRL+Scroll) to force it.
+4. Click the floating **👁️ button** at the bottom right to toggle the visibility of organized images.
+5. The script only monitors additions, so if you remove a creation from a folder, click the **Reset (🗑️) button** to clear the local memory, otherwise it'll remain hidden everywhere.
 
 ## 🗺️ Roadmap
 
