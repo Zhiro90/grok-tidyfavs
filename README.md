@@ -23,16 +23,14 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 
 1. Navigate to your [Grok.com](https://grok.com/) favorites or collection page (language must be set to english).
 2. Go to your custom folders first and scroll to the end of each one (to lazyload every image). The script will silently scan and memorize the images inside them.
-3. Return to the **"All"** tab. The script will automatically hide the images you just memorized and collapse the empty spaces thgough a forced the grid layout to redraw. This works on firefox, a little buggy on chrome, haven't tested on edge. You can do a quick resize (CTRL+Scroll) to force it.
-4. Click the floating **👁️ button** at the bottom right to toggle the visibility of organized images.
+3. Return to the **"All"** tab. Upon pressing the  **👁️ button**, the script will hide the images you just memorized and collapse the empty spaces thgough a refresh
+4. Pressing it again will toggle the visibility of organized images back on.
 5. The script only monitors additions, so if you remove a creation from a folder, click the **Reset (🗑️) button** to clear the local memory, otherwise it'll remain hidden everywhere.
 
 ## 🗺️ Roadmap
 
-* **Scan Notifications:** Implement toast alerts to notify the user whenever new folders are successfully scanned and added to memory.
 * **Scan entire folder:** Currently, folders need to be scrolled all the way down to lazy load all creations, working on a fix.
-* **Any language:** Current workflow needs the default folder to be called "All", so, english only. currently working on a fix.
-* **Thumbnail Restructuring:** Improve the grid re-rendering logic to handle thumbnail displacement more smoothly when hiding multiple items.
+* **Thumbnail Restructuring:** Improve the grid re-rendering logic. Used to be a resize. Notw it's a refresh. Working on an independent grid entirely.
   
 ***
 *Made with 🤍 for the Grok community.*
