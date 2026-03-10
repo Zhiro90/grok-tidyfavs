@@ -26,7 +26,7 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 3. Return to the **"All"** tab. Upon pressing the  **👁️ button**, the script will hide the images you just memorized and collapse the empty spaces.
 4. Pressing it again will toggle the visibility of organized images back on.
 5. The script only monitors additions, so if you remove a creation from a folder, click the **Reset (🗑️) button** to clear the local memory, otherwise it'll remain hidden everywhere.
-6. Tagged Images, now hidden, will try to load, causing some small blinking artifacts before settling down. You can click the refresh button (or refresh the page) to sabilize the layout.
+6. Tagged Images, now hidden, will try to load, causing some small blinking artifacts before settling down. You can click the refresh button (or refresh the page) to stabilize the layout.
 
 ## 🗺️ Roadmap
 
