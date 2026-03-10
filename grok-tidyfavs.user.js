@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Grok TidyFavs
 // @namespace    https://github.com/Zhiro90
-// @version      1.1
-// @description  Hides images in "All" from your imagine collection that are already assigned to folders.
+// @version      1.2
+// @description  Hides tagged images in the "All" section of your saved creations. 
 // @author       Zhiro90
 // @match        *://grok.com/*
-// @icon         https://grok.com/favicon.ico
+// @icon         https://grok.com/images/favicon.ico
 // @homepageURL  https://github.com/Zhiro90/grok-tidyfavs
 // @supportURL   https://github.com/Zhiro90/grok-tidyfavs/issues
 // @downloadURL  https://raw.githubusercontent.com/Zhiro90/grok-tidyfavs/main/grok-tidyfavs.user.js
@@ -17,21 +17,35 @@
 (function() {
     'use strict';
 
+    // ==========================================
+    // 🎛️ CONFIGURACIÓN DE DESARROLLO
+    // ==========================================
+    const DEBUG_MODE = false; // Cambiar a 'true' para ver la telemetría en consola
+
     let savedMemory = JSON.parse(localStorage.getItem('grok_tagged_memory') || '{}');
     let hideTagged = localStorage.getItem('grok_hide_tagged') !== 'false';
+    
+    let currentFolderState = undefined; 
+    let zoomTimeout = null;
+    let isScrolling = false;
+    let scrollTimeout = null;
+    let pendingLayoutFix = false;
 
-    console.log("%c🚀 GROK TIDYFAVS V1.1 (HYBRID ENGINE: NETWORK + DOM) LOADED", "color: #00ff00; font-weight: bold;");
+    function logDebug(type, message, color = "#bdc3c7") {
+        if (!DEBUG_MODE) return;
+        console.log(`%c[DEBUG ${type}] ${message}`, `color: ${color}; font-size: 11px;`);
+    }
+
+    console.log("%c🚀 GROK TIDYFAVS V1.2 (MICRO-SHRINK ENGINE) LOADED", "color: #00ff00; font-weight: bold;");
 
     // ==========================================
-    // 🛡️ 1. NETWORK INTERCEPTOR
-    // Intercepts Grok's API calls for Infinite Scroll
+    // 🛡️ 1. NETWORK INTERCEPTOR (El Cadenero)
     // ==========================================
     const originalFetch = window.fetch;
     window.fetch = async function(...args) {
         const response = await originalFetch.apply(this, args);
         const url = args[0] && typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
 
-        // Exclude fast assets
         if (url.includes('.woff') || url.includes('.css') || url.includes('.jpg') || url.includes('.png')) {
             return response;
         }
@@ -47,13 +61,10 @@
 
                     const hiddenIds = Object.keys(savedMemory);
                     if (hiddenIds.length > 0) {
-                        // Quick heuristic search
-                        const hasHidden = hiddenIds.some(id => text.includes(id));
-
-                        if (hasHidden) {
+                        if (hiddenIds.some(id => text.includes(id))) {
                             let data = JSON.parse(text);
+                            let removedCount = 0;
 
-                            // Deep recursive filter to erase info before Grok renders it
                             const filterNode = (obj) => {
                                 if (!obj || typeof obj !== 'object') return false;
                                 let changed = false;
@@ -63,6 +74,7 @@
                                         if (item && item.id && hiddenIds.includes(item.id)) {
                                             obj.splice(i, 1);
                                             changed = true;
+                                            if (DEBUG_MODE) removedCount++;
                                         }
                                     }
                                 }
@@ -73,7 +85,7 @@
                             };
 
                             if (filterNode(data)) {
-                                console.log("%c🛡️ Archivist: Images filtered from network root.", "color: #00ffff");
+                                logDebug("NETWORK", `Intercepted and destroyed ${removedCount} images before reaching React!`, "#e74c3c");
                                 return new Response(JSON.stringify(data), {
                                     status: response.status,
                                     statusText: response.statusText,
@@ -83,7 +95,7 @@
                         }
                     }
                 } catch (e) {
-                    // Ignore errors silently to avoid breaking the site
+                    // Silenciar errores de parseo
                 }
             }
         }
@@ -91,7 +103,24 @@
     };
 
     // ==========================================
-    // 🖥️ 2. DOM MANAGER & LEARNING MODE
+    // 🕹️ 2. SCROLL GUARD (La Tregua)
+    // ==========================================
+    window.addEventListener('scroll', () => {
+        isScrolling = true;
+        clearTimeout(scrollTimeout);
+        
+        scrollTimeout = setTimeout(() => {
+            isScrolling = false;
+            if (pendingLayoutFix) {
+                logDebug("SCROLL", "Scroll stopped. Triggering sync.", "#2ecc71");
+                pendingLayoutFix = false;
+                requestLayoutSync();
+            }
+        }, 500);
+    }, { capture: true, passive: true });
+
+    // ==========================================
+    // 🖥️ 3. DOM MANAGER & HACKS
     // ==========================================
     const SYSTEM_TAB_NAMES = new Set([
         'All', 'Todas', 'Todos', 'Tout', 'Tous', 'Alle', 'Tutti', 'すべて', '全て', '全部',
@@ -158,40 +187,150 @@
         setTimeout(() => { toast.remove(); }, 2300);
     }
 
+    function triggerZoom() {
+        const originalZoom = document.body.style.zoom || '';
+        document.body.style.zoom = '0.999';
+        setTimeout(() => {
+            document.body.style.zoom = originalZoom;
+            window.dispatchEvent(new Event('resize'));
+        }, 50);
+    }
+
+    function requestLayoutSync() {
+        if (isScrolling) {
+            pendingLayoutFix = true;
+            return;
+        }
+        if (zoomTimeout) clearTimeout(zoomTimeout);
+        zoomTimeout = setTimeout(triggerZoom, 200); 
+    }
+
+    function fireTripleTapSequence() {
+        setTimeout(triggerZoom, 100);
+        setTimeout(triggerZoom, 500);
+        setTimeout(triggerZoom, 1200);
+    }
+
+    // 🔥 LA MAGIA DEL ANT-MAN: Ocultar engañando a React
+    function applyShrinkHide(wrapper) {
+        if (wrapper.dataset.tidyShrink === 'true') return false; 
+        
+        wrapper.style.removeProperty('display'); 
+        
+        // La aplastamos a nivel molecular
+        wrapper.style.setProperty('height', '1px', 'important');
+        wrapper.style.setProperty('width', '1px', 'important');
+        wrapper.style.setProperty('overflow', 'hidden', 'important');
+        wrapper.style.setProperty('opacity', '0', 'important');
+        wrapper.style.setProperty('margin', '0', 'important');
+        wrapper.style.setProperty('padding', '0', 'important');
+        wrapper.style.setProperty('pointer-events', 'none', 'important');
+        wrapper.style.setProperty('border', 'none', 'important');
+        
+        wrapper.dataset.tidyShrink = 'true';
+        return true; 
+    }
+
+    // Restaurar a la normalidad
+    function removeShrinkHide(wrapper) {
+        if (wrapper.dataset.tidyShrink !== 'true') return false; 
+        
+        wrapper.style.removeProperty('height');
+        wrapper.style.removeProperty('width');
+        wrapper.style.removeProperty('overflow');
+        wrapper.style.removeProperty('opacity');
+        wrapper.style.removeProperty('margin');
+        wrapper.style.removeProperty('padding');
+        wrapper.style.removeProperty('pointer-events');
+        wrapper.style.removeProperty('border');
+        
+        delete wrapper.dataset.tidyShrink;
+        return true; 
+    }
+
     function updateDOM() {
         const url = window.location.href;
         if (!url.includes('favorites') && !url.includes('collection') && !url.includes('saved')) return;
 
         const folderName = getActiveFolderName();
-        const cards = document.querySelectorAll('.group\\/media-post-masonry-card');
+        const cards = Array.from(document.querySelectorAll('.group\\/media-post-masonry-card'));
+        if (cards.length === 0) return;
 
         let learnedCount = 0;
+        let maxRelativeBottom = 0;
+        let needsLayoutFix = false; 
+        
+        const isAllView = !folderName;
+        const masonryContainer = cards[0].parentElement.parentElement;
+        const containerRect = masonryContainer ? masonryContainer.getBoundingClientRect() : null;
+
+        const newFolderState = isAllView ? 'ALL' : folderName;
+        if (currentFolderState !== newFolderState) {
+            currentFolderState = newFolderState;
+            if (isAllView && hideTagged) {
+                fireTripleTapSequence(); 
+            }
+        }
 
         cards.forEach(card => {
             const wrapper = card.parentElement;
             const mediaId = getMediaId(card);
 
-            // Remove any old CSS translation leftovers
-            card.style.translate = '';
+            // Evitar conflictos con viejos scripts
+            wrapper.style.removeProperty('display');
 
             if (!mediaId) return;
 
-            // 1. LEARNING MODE (Inside folders)
-            if (folderName) {
-                wrapper.style.removeProperty('display');
+            if (!isAllView) {
+                if (removeShrinkHide(wrapper)) needsLayoutFix = true;
                 if (!savedMemory[mediaId]) {
                     savedMemory[mediaId] = folderName;
                     learnedCount++;
                 }
-            }
-            // 2. FILTER MODE (Only to hide the initial batch loaded before the Interceptor catches on)
-            else if (hideTagged && savedMemory[mediaId]) {
-                wrapper.style.setProperty('display', 'none', 'important');
-            }
-            else {
-                wrapper.style.removeProperty('display');
+            } else if (hideTagged && savedMemory[mediaId]) {
+                if (applyShrinkHide(wrapper)) needsLayoutFix = true; 
+            } else {
+                if (removeShrinkHide(wrapper)) needsLayoutFix = true;
+                
+                // Medimos la altura total para poner el freno al contenedor
+                if (hideTagged && isAllView && containerRect && wrapper.dataset.tidyShrink !== 'true') {
+                    const reactTransformY = parseFloat(wrapper.style.translate?.split(' ')[1] || "0");
+                    const relativeBottom = reactTransformY + wrapper.getBoundingClientRect().height;
+                    if (relativeBottom > maxRelativeBottom) {
+                        maxRelativeBottom = relativeBottom;
+                    }
+                }
             }
         });
+
+        if (needsLayoutFix) {
+            logDebug("RENDER", "Applying Zoom Jiggle to force React measurer update");
+            requestLayoutSync();
+        }
+
+        let currentTargetHeight = "100vh";
+        
+        // Freno del contenedor para evitar scrolls infinitos
+        if (isAllView && hideTagged && masonryContainer) {
+            if (maxRelativeBottom > 0) {
+                let proposedHeight = Math.ceil(maxRelativeBottom) + 800; 
+                let currentHeightVal = parseFloat(masonryContainer.dataset.tidyHeight || "0");
+                
+                if (Math.abs(proposedHeight - currentHeightVal) > 15) {
+                    currentTargetHeight = `${proposedHeight}`;
+                    masonryContainer.dataset.tidyHeight = currentTargetHeight;
+                    masonryContainer.style.setProperty('height', `${currentTargetHeight}px`, 'important');
+                    masonryContainer.dataset.tidyBrake = 'true';
+                }
+            } else {
+                masonryContainer.style.setProperty('height', '100vh', 'important');
+                masonryContainer.dataset.tidyHeight = "0";
+            }
+        } else if (masonryContainer && masonryContainer.dataset.tidyBrake) {
+            masonryContainer.style.removeProperty('height');
+            delete masonryContainer.dataset.tidyBrake;
+            delete masonryContainer.dataset.tidyHeight;
+        }
 
         if (learnedCount > 0) {
             localStorage.setItem('grok_tagged_memory', JSON.stringify(savedMemory));
@@ -200,7 +339,7 @@
     }
 
     // ==========================================
-    // 🎛️ 3. USER INTERFACE
+    // 🎛️ 4. USER INTERFACE
     // ==========================================
     function createUI() {
         if (document.getElementById('grok-filter-container')) return;
@@ -211,6 +350,28 @@
             position: 'fixed', bottom: '20px', right: '20px', zIndex: '999999',
             display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center'
         });
+
+        const refreshBtn = document.createElement('button');
+        refreshBtn.title = "Blinking images? Refresh to stabilize saves";
+        Object.assign(refreshBtn.style, {
+            width: '38px', height: '38px', borderRadius: '50%',
+            backgroundColor: 'rgba(20,20,20,0.9)', border: '1px solid #555',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#aaa', fontSize: '18px', boxShadow: '0 2px 6px rgba(0,0,0,0.4)', transition: 'all 0.2s'
+        });
+        refreshBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+        `;
+        refreshBtn.onmouseover = () => { refreshBtn.style.color = '#3498db'; refreshBtn.style.borderColor = '#3498db'; };
+        refreshBtn.onmouseout = () => { refreshBtn.style.color = '#aaa'; refreshBtn.style.borderColor = '#555'; };
+        refreshBtn.onclick = () => {
+            showToast("Stabilizing layout...", 'info');
+            setTimeout(() => window.location.reload(), 200);
+        };
 
         const resetBtn = document.createElement('button');
         resetBtn.title = "Clear memory and reset filters";
@@ -226,7 +387,6 @@
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
         `;
-
         resetBtn.onmouseover = () => { resetBtn.style.color = '#ff4d4d'; resetBtn.style.borderColor = '#ff4d4d'; };
         resetBtn.onmouseout = () => { resetBtn.style.color = '#aaa'; resetBtn.style.borderColor = '#555'; };
         resetBtn.onclick = () => {
@@ -234,11 +394,18 @@
             localStorage.setItem('grok_tagged_memory', '{}');
             hideTagged = false;
             localStorage.setItem('grok_hide_tagged', false);
-            showToast("Memory wiped. Reloading network...", 'warning');
-            setTimeout(() => window.location.reload(), 800);
+            
+            const tb = document.getElementById('grok-toggle-btn');
+            if(tb) {
+                tb.style.color = '#fff';
+                tb.innerHTML = '👁️';
+            }
+            showToast("Memory wiped. Layout resetting...", 'warning');
+            fireTripleTapSequence();
         };
 
         const toggleBtn = document.createElement('button');
+        toggleBtn.id = 'grok-toggle-btn';
         Object.assign(toggleBtn.style, {
             width: '50px', height: '50px', borderRadius: '50%',
             backgroundColor: 'rgba(0,0,0,0.9)', border: '2px solid #444',
@@ -251,16 +418,15 @@
 
         toggleBtn.onclick = () => {
             hideTagged = !hideTagged;
+            logDebug("UI", `Visibility Toggled -> Now Hide is: ${hideTagged}`);
             localStorage.setItem('grok_hide_tagged', hideTagged);
             toggleBtn.style.color = hideTagged ? '#ff4d4d' : '#fff';
             toggleBtn.innerHTML = hideTagged ? '👁️‍🗨️' : '👁️';
-
-            showToast(hideTagged ? "Applying Network Filter..." : "Disabling Filter...", "info");
-
-            // Reload the page so the Interceptor catches clean data from the server
-            setTimeout(() => window.location.reload(), 600);
+            showToast(hideTagged ? "Applying Filter..." : "Disabling Filter...", "info");
+            fireTripleTapSequence();
         };
 
+        containerUI.appendChild(refreshBtn);
         containerUI.appendChild(resetBtn);
         containerUI.appendChild(toggleBtn);
         document.body.appendChild(containerUI);
