@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Grok TidyFavs
 // @namespace    https://github.com/Zhiro90
-// @version      1.2
+// @version      1.2.1
 // @description  Hides tagged images in the "All" section of your saved creations. 
 // @author       Zhiro90
 // @match        *://grok.com/*
@@ -24,8 +24,8 @@
 
     let savedMemory = JSON.parse(localStorage.getItem('grok_tagged_memory') || '{}');
     let hideTagged = localStorage.getItem('grok_hide_tagged') !== 'false';
-    
-    let currentFolderState = undefined; 
+
+    let currentFolderState = undefined;
     let zoomTimeout = null;
     let isScrolling = false;
     let scrollTimeout = null;
@@ -36,7 +36,22 @@
         console.log(`%c[DEBUG ${type}] ${message}`, `color: ${color}; font-size: 11px;`);
     }
 
-    console.log("%c🚀 GROK TIDYFAVS V1.2 (MICRO-SHRINK ENGINE) LOADED", "color: #00ff00; font-weight: bold;");
+    console.log("%c🚀 GROK TIDYFAVS V1.2.4 (MICRO-SHRINK + SCROLL LOCK) LOADED", "color: #00ff00; font-weight: bold;");
+
+    // ==========================================
+    // 🎨 CSS INJECTIONS (Global Scroll Lock)
+    // ==========================================
+    if (!document.getElementById('grok-tidy-css')) {
+        const style = document.createElement('style');
+        style.id = 'grok-tidy-css';
+        style.textContent = `
+            body.tidy-scroll-lock {
+                overflow: hidden !important;
+                overscroll-behavior: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
     // ==========================================
     // 🛡️ 1. NETWORK INTERCEPTOR (El Cadenero)
@@ -94,9 +109,7 @@
                             }
                         }
                     }
-                } catch (e) {
-                    // Silenciar errores de parseo
-                }
+                } catch (e) {}
             }
         }
         return response;
@@ -108,7 +121,7 @@
     window.addEventListener('scroll', () => {
         isScrolling = true;
         clearTimeout(scrollTimeout);
-        
+
         scrollTimeout = setTimeout(() => {
             isScrolling = false;
             if (pendingLayoutFix) {
@@ -202,7 +215,7 @@
             return;
         }
         if (zoomTimeout) clearTimeout(zoomTimeout);
-        zoomTimeout = setTimeout(triggerZoom, 200); 
+        zoomTimeout = setTimeout(triggerZoom, 200);
     }
 
     function fireTripleTapSequence() {
@@ -211,13 +224,11 @@
         setTimeout(triggerZoom, 1200);
     }
 
-    // 🔥 LA MAGIA DEL ANT-MAN: Ocultar engañando a React
     function applyShrinkHide(wrapper) {
-        if (wrapper.dataset.tidyShrink === 'true') return false; 
-        
-        wrapper.style.removeProperty('display'); 
-        
-        // La aplastamos a nivel molecular
+        if (wrapper.dataset.tidyShrink === 'true') return false;
+
+        wrapper.style.removeProperty('display');
+
         wrapper.style.setProperty('height', '1px', 'important');
         wrapper.style.setProperty('width', '1px', 'important');
         wrapper.style.setProperty('overflow', 'hidden', 'important');
@@ -226,15 +237,14 @@
         wrapper.style.setProperty('padding', '0', 'important');
         wrapper.style.setProperty('pointer-events', 'none', 'important');
         wrapper.style.setProperty('border', 'none', 'important');
-        
+
         wrapper.dataset.tidyShrink = 'true';
-        return true; 
+        return true;
     }
 
-    // Restaurar a la normalidad
     function removeShrinkHide(wrapper) {
-        if (wrapper.dataset.tidyShrink !== 'true') return false; 
-        
+        if (wrapper.dataset.tidyShrink !== 'true') return false;
+
         wrapper.style.removeProperty('height');
         wrapper.style.removeProperty('width');
         wrapper.style.removeProperty('overflow');
@@ -243,23 +253,20 @@
         wrapper.style.removeProperty('padding');
         wrapper.style.removeProperty('pointer-events');
         wrapper.style.removeProperty('border');
-        
+
         delete wrapper.dataset.tidyShrink;
-        return true; 
+        return true;
     }
 
     function updateDOM() {
-        const url = window.location.href;
-        if (!url.includes('favorites') && !url.includes('collection') && !url.includes('saved')) return;
-
         const folderName = getActiveFolderName();
         const cards = Array.from(document.querySelectorAll('.group\\/media-post-masonry-card'));
         if (cards.length === 0) return;
 
         let learnedCount = 0;
         let maxRelativeBottom = 0;
-        let needsLayoutFix = false; 
-        
+        let needsLayoutFix = false;
+
         const isAllView = !folderName;
         const masonryContainer = cards[0].parentElement.parentElement;
         const containerRect = masonryContainer ? masonryContainer.getBoundingClientRect() : null;
@@ -268,7 +275,7 @@
         if (currentFolderState !== newFolderState) {
             currentFolderState = newFolderState;
             if (isAllView && hideTagged) {
-                fireTripleTapSequence(); 
+                fireTripleTapSequence();
             }
         }
 
@@ -276,7 +283,6 @@
             const wrapper = card.parentElement;
             const mediaId = getMediaId(card);
 
-            // Evitar conflictos con viejos scripts
             wrapper.style.removeProperty('display');
 
             if (!mediaId) return;
@@ -288,11 +294,10 @@
                     learnedCount++;
                 }
             } else if (hideTagged && savedMemory[mediaId]) {
-                if (applyShrinkHide(wrapper)) needsLayoutFix = true; 
+                if (applyShrinkHide(wrapper)) needsLayoutFix = true;
             } else {
                 if (removeShrinkHide(wrapper)) needsLayoutFix = true;
-                
-                // Medimos la altura total para poner el freno al contenedor
+
                 if (hideTagged && isAllView && containerRect && wrapper.dataset.tidyShrink !== 'true') {
                     const reactTransformY = parseFloat(wrapper.style.translate?.split(' ')[1] || "0");
                     const relativeBottom = reactTransformY + wrapper.getBoundingClientRect().height;
@@ -305,17 +310,22 @@
 
         if (needsLayoutFix) {
             logDebug("RENDER", "Applying Zoom Jiggle to force React measurer update");
+
+            if (window.scrollY === 0 && isAllView) {
+                logDebug("HACK", "Scroll is 0. Nudging to break React thrashing loop.");
+                window.scrollTo(0, 2);
+            }
+
             requestLayoutSync();
         }
 
         let currentTargetHeight = "100vh";
-        
-        // Freno del contenedor para evitar scrolls infinitos
+
         if (isAllView && hideTagged && masonryContainer) {
             if (maxRelativeBottom > 0) {
-                let proposedHeight = Math.ceil(maxRelativeBottom) + 800; 
+                let proposedHeight = Math.ceil(maxRelativeBottom) + 800;
                 let currentHeightVal = parseFloat(masonryContainer.dataset.tidyHeight || "0");
-                
+
                 if (Math.abs(proposedHeight - currentHeightVal) > 15) {
                     currentTargetHeight = `${proposedHeight}`;
                     masonryContainer.dataset.tidyHeight = currentTargetHeight;
@@ -347,7 +357,7 @@
         const containerUI = document.createElement('div');
         containerUI.id = 'grok-filter-container';
         Object.assign(containerUI.style, {
-            position: 'fixed', bottom: '20px', right: '20px', zIndex: '999999',
+            position: 'fixed', bottom: '20px', right: '80px', zIndex: '999999',
             display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center'
         });
 
@@ -374,7 +384,7 @@
         };
 
         const resetBtn = document.createElement('button');
-        resetBtn.title = "Clear memory and reset filters";
+        resetBtn.title = "Clear memory (Already refreshed? Reload to show hidden)";
         Object.assign(resetBtn.style, {
             width: '38px', height: '38px', borderRadius: '50%',
             backgroundColor: 'rgba(20,20,20,0.9)', border: '1px solid #555',
@@ -394,13 +404,14 @@
             localStorage.setItem('grok_tagged_memory', '{}');
             hideTagged = false;
             localStorage.setItem('grok_hide_tagged', false);
-            
+
             const tb = document.getElementById('grok-toggle-btn');
             if(tb) {
                 tb.style.color = '#fff';
                 tb.innerHTML = '👁️';
+                tb.title = 'Hide organized images';
             }
-            showToast("Memory wiped. Layout resetting...", 'warning');
+            showToast("Memory wiped. (Reload if images are missing)", 'warning');
             fireTripleTapSequence();
         };
 
@@ -418,10 +429,10 @@
 
         toggleBtn.onclick = () => {
             hideTagged = !hideTagged;
-            logDebug("UI", `Visibility Toggled -> Now Hide is: ${hideTagged}`);
             localStorage.setItem('grok_hide_tagged', hideTagged);
             toggleBtn.style.color = hideTagged ? '#ff4d4d' : '#fff';
             toggleBtn.innerHTML = hideTagged ? '👁️‍🗨️' : '👁️';
+            toggleBtn.title = hideTagged ? 'Show organized images' : 'Hide organized images';
             showToast(hideTagged ? "Applying Filter..." : "Disabling Filter...", "info");
             fireTripleTapSequence();
         };
@@ -432,8 +443,29 @@
         document.body.appendChild(containerUI);
     }
 
+    // ==========================================
+    // ⏰ MASTER LOOP
+    // ==========================================
     setInterval(() => {
-        createUI();
-        updateDOM();
+        const url = window.location.href;
+        const isTargetPage = url.includes('favorites') || url.includes('collection') || url.includes('saved') || url.endsWith('/all');
+
+        let uiContainer = document.getElementById('grok-filter-container');
+
+        if (!isTargetPage) {
+            // Fuera de la zona: Ocultar UI y liberar el scroll global
+            if (uiContainer) uiContainer.style.display = 'none';
+            document.body.classList.remove('tidy-scroll-lock');
+            return;
+        } else {
+            // Dentro de la zona: Mostrar UI y proteger el scroll global
+            if (uiContainer) {
+                uiContainer.style.display = 'flex';
+            } else {
+                createUI();
+            }
+            document.body.classList.add('tidy-scroll-lock');
+            updateDOM();
+        }
     }, 150);
 })();
