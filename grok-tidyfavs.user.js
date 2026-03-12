@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Grok TidyFavs
 // @namespace    https://github.com/Zhiro90
-// @version      1.2.1
-// @description  Hides tagged images in the "All" section of your saved creations. 
+// @version      1.3
+// @description  Hides tagged images in the "All" section of your saved imagine creations. 
 // @author       Zhiro90
 // @match        *://grok.com/*
 // @icon         https://grok.com/images/favicon.ico
@@ -24,8 +24,8 @@
 
     let savedMemory = JSON.parse(localStorage.getItem('grok_tagged_memory') || '{}');
     let hideTagged = localStorage.getItem('grok_hide_tagged') !== 'false';
-
-    let currentFolderState = undefined;
+    
+    let currentFolderState = undefined; 
     let zoomTimeout = null;
     let isScrolling = false;
     let scrollTimeout = null;
@@ -36,7 +36,7 @@
         console.log(`%c[DEBUG ${type}] ${message}`, `color: ${color}; font-size: 11px;`);
     }
 
-    console.log("%c🚀 GROK TIDYFAVS V1.2.4 (MICRO-SHRINK + SCROLL LOCK) LOADED", "color: #00ff00; font-weight: bold;");
+    console.log("%c🚀 GROK TIDYFAVS V1.2.6 (PURE MICRO-SHRINK ENGINE) LOADED", "color: #00ff00; font-weight: bold;");
 
     // ==========================================
     // 🎨 CSS INJECTIONS (Global Scroll Lock)
@@ -54,74 +54,12 @@
     }
 
     // ==========================================
-    // 🛡️ 1. NETWORK INTERCEPTOR (El Cadenero)
-    // ==========================================
-    const originalFetch = window.fetch;
-    window.fetch = async function(...args) {
-        const response = await originalFetch.apply(this, args);
-        const url = args[0] && typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-
-        if (url.includes('.woff') || url.includes('.css') || url.includes('.jpg') || url.includes('.png')) {
-            return response;
-        }
-
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            const isAllView = window.location.href.endsWith('/saved') || window.location.href.endsWith('/favorites') || window.location.href.endsWith('/all');
-
-            if (hideTagged && isAllView) {
-                try {
-                    const clone = response.clone();
-                    let text = await clone.text();
-
-                    const hiddenIds = Object.keys(savedMemory);
-                    if (hiddenIds.length > 0) {
-                        if (hiddenIds.some(id => text.includes(id))) {
-                            let data = JSON.parse(text);
-                            let removedCount = 0;
-
-                            const filterNode = (obj) => {
-                                if (!obj || typeof obj !== 'object') return false;
-                                let changed = false;
-                                if (Array.isArray(obj)) {
-                                    for (let i = obj.length - 1; i >= 0; i--) {
-                                        let item = obj[i];
-                                        if (item && item.id && hiddenIds.includes(item.id)) {
-                                            obj.splice(i, 1);
-                                            changed = true;
-                                            if (DEBUG_MODE) removedCount++;
-                                        }
-                                    }
-                                }
-                                for (let key in obj) {
-                                    if (filterNode(obj[key])) changed = true;
-                                }
-                                return changed;
-                            };
-
-                            if (filterNode(data)) {
-                                logDebug("NETWORK", `Intercepted and destroyed ${removedCount} images before reaching React!`, "#e74c3c");
-                                return new Response(JSON.stringify(data), {
-                                    status: response.status,
-                                    statusText: response.statusText,
-                                    headers: response.headers
-                                });
-                            }
-                        }
-                    }
-                } catch (e) {}
-            }
-        }
-        return response;
-    };
-
-    // ==========================================
-    // 🕹️ 2. SCROLL GUARD (La Tregua)
+    // 🕹️ 1. SCROLL GUARD (La Tregua)
     // ==========================================
     window.addEventListener('scroll', () => {
         isScrolling = true;
         clearTimeout(scrollTimeout);
-
+        
         scrollTimeout = setTimeout(() => {
             isScrolling = false;
             if (pendingLayoutFix) {
@@ -133,7 +71,7 @@
     }, { capture: true, passive: true });
 
     // ==========================================
-    // 🖥️ 3. DOM MANAGER & HACKS
+    // 🖥️ 2. DOM MANAGER & HACKS
     // ==========================================
     const SYSTEM_TAB_NAMES = new Set([
         'All', 'Todas', 'Todos', 'Tout', 'Tous', 'Alle', 'Tutti', 'すべて', '全て', '全部',
@@ -215,7 +153,7 @@
             return;
         }
         if (zoomTimeout) clearTimeout(zoomTimeout);
-        zoomTimeout = setTimeout(triggerZoom, 200);
+        zoomTimeout = setTimeout(triggerZoom, 200); 
     }
 
     function fireTripleTapSequence() {
@@ -225,10 +163,10 @@
     }
 
     function applyShrinkHide(wrapper) {
-        if (wrapper.dataset.tidyShrink === 'true') return false;
-
-        wrapper.style.removeProperty('display');
-
+        if (wrapper.dataset.tidyShrink === 'true') return false; 
+        
+        wrapper.style.removeProperty('display'); 
+        
         wrapper.style.setProperty('height', '1px', 'important');
         wrapper.style.setProperty('width', '1px', 'important');
         wrapper.style.setProperty('overflow', 'hidden', 'important');
@@ -237,14 +175,14 @@
         wrapper.style.setProperty('padding', '0', 'important');
         wrapper.style.setProperty('pointer-events', 'none', 'important');
         wrapper.style.setProperty('border', 'none', 'important');
-
+        
         wrapper.dataset.tidyShrink = 'true';
-        return true;
+        return true; 
     }
 
     function removeShrinkHide(wrapper) {
-        if (wrapper.dataset.tidyShrink !== 'true') return false;
-
+        if (wrapper.dataset.tidyShrink !== 'true') return false; 
+        
         wrapper.style.removeProperty('height');
         wrapper.style.removeProperty('width');
         wrapper.style.removeProperty('overflow');
@@ -253,9 +191,9 @@
         wrapper.style.removeProperty('padding');
         wrapper.style.removeProperty('pointer-events');
         wrapper.style.removeProperty('border');
-
+        
         delete wrapper.dataset.tidyShrink;
-        return true;
+        return true; 
     }
 
     function updateDOM() {
@@ -265,8 +203,8 @@
 
         let learnedCount = 0;
         let maxRelativeBottom = 0;
-        let needsLayoutFix = false;
-
+        let needsLayoutFix = false; 
+        
         const isAllView = !folderName;
         const masonryContainer = cards[0].parentElement.parentElement;
         const containerRect = masonryContainer ? masonryContainer.getBoundingClientRect() : null;
@@ -275,7 +213,7 @@
         if (currentFolderState !== newFolderState) {
             currentFolderState = newFolderState;
             if (isAllView && hideTagged) {
-                fireTripleTapSequence();
+                fireTripleTapSequence(); 
             }
         }
 
@@ -294,10 +232,10 @@
                     learnedCount++;
                 }
             } else if (hideTagged && savedMemory[mediaId]) {
-                if (applyShrinkHide(wrapper)) needsLayoutFix = true;
+                if (applyShrinkHide(wrapper)) needsLayoutFix = true; 
             } else {
                 if (removeShrinkHide(wrapper)) needsLayoutFix = true;
-
+                
                 if (hideTagged && isAllView && containerRect && wrapper.dataset.tidyShrink !== 'true') {
                     const reactTransformY = parseFloat(wrapper.style.translate?.split(' ')[1] || "0");
                     const relativeBottom = reactTransformY + wrapper.getBoundingClientRect().height;
@@ -310,22 +248,22 @@
 
         if (needsLayoutFix) {
             logDebug("RENDER", "Applying Zoom Jiggle to force React measurer update");
-
+            
             if (window.scrollY === 0 && isAllView) {
                 logDebug("HACK", "Scroll is 0. Nudging to break React thrashing loop.");
                 window.scrollTo(0, 2);
             }
-
+            
             requestLayoutSync();
         }
 
         let currentTargetHeight = "100vh";
-
+        
         if (isAllView && hideTagged && masonryContainer) {
             if (maxRelativeBottom > 0) {
-                let proposedHeight = Math.ceil(maxRelativeBottom) + 800;
+                let proposedHeight = Math.ceil(maxRelativeBottom) + 800; 
                 let currentHeightVal = parseFloat(masonryContainer.dataset.tidyHeight || "0");
-
+                
                 if (Math.abs(proposedHeight - currentHeightVal) > 15) {
                     currentTargetHeight = `${proposedHeight}`;
                     masonryContainer.dataset.tidyHeight = currentTargetHeight;
@@ -349,7 +287,7 @@
     }
 
     // ==========================================
-    // 🎛️ 4. USER INTERFACE
+    // 🎛️ 3. USER INTERFACE
     // ==========================================
     function createUI() {
         if (document.getElementById('grok-filter-container')) return;
@@ -361,27 +299,8 @@
             display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center'
         });
 
-        const refreshBtn = document.createElement('button');
-        refreshBtn.title = "Blinking images? Refresh to stabilize saves";
-        Object.assign(refreshBtn.style, {
-            width: '38px', height: '38px', borderRadius: '50%',
-            backgroundColor: 'rgba(20,20,20,0.9)', border: '1px solid #555',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#aaa', fontSize: '18px', boxShadow: '0 2px 6px rgba(0,0,0,0.4)', transition: 'all 0.2s'
-        });
-        refreshBtn.innerHTML = `
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <polyline points="1 20 1 14 7 14"></polyline>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
-        `;
-        refreshBtn.onmouseover = () => { refreshBtn.style.color = '#3498db'; refreshBtn.style.borderColor = '#3498db'; };
-        refreshBtn.onmouseout = () => { refreshBtn.style.color = '#aaa'; refreshBtn.style.borderColor = '#555'; };
-        refreshBtn.onclick = () => {
-            showToast("Stabilizing layout...", 'info');
-            setTimeout(() => window.location.reload(), 200);
-        };
+        // NOTA: Se ha eliminado el refreshBtn porque el motor Micro-Shrink
+        // no requiere estabilización manual tras un reload.
 
         const resetBtn = document.createElement('button');
         resetBtn.title = "Clear memory (Already refreshed? Reload to show hidden)";
@@ -404,12 +323,12 @@
             localStorage.setItem('grok_tagged_memory', '{}');
             hideTagged = false;
             localStorage.setItem('grok_hide_tagged', false);
-
+            
             const tb = document.getElementById('grok-toggle-btn');
             if(tb) {
                 tb.style.color = '#fff';
                 tb.innerHTML = '👁️';
-                tb.title = 'Hide organized images';
+                tb.title = 'Hide organized images'; 
             }
             showToast("Memory wiped. (Reload if images are missing)", 'warning');
             fireTripleTapSequence();
@@ -437,7 +356,6 @@
             fireTripleTapSequence();
         };
 
-        containerUI.appendChild(refreshBtn);
         containerUI.appendChild(resetBtn);
         containerUI.appendChild(toggleBtn);
         document.body.appendChild(containerUI);
@@ -449,16 +367,14 @@
     setInterval(() => {
         const url = window.location.href;
         const isTargetPage = url.includes('favorites') || url.includes('collection') || url.includes('saved') || url.endsWith('/all');
-
+        
         let uiContainer = document.getElementById('grok-filter-container');
-
+        
         if (!isTargetPage) {
-            // Fuera de la zona: Ocultar UI y liberar el scroll global
             if (uiContainer) uiContainer.style.display = 'none';
             document.body.classList.remove('tidy-scroll-lock');
-            return;
+            return; 
         } else {
-            // Dentro de la zona: Mostrar UI y proteger el scroll global
             if (uiContainer) {
                 uiContainer.style.display = 'flex';
             } else {
