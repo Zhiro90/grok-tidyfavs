@@ -6,6 +6,12 @@ A lightweight UserScript for Grok/Imagine Favorites section that automatically h
 
 https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 
+## 📢 What's New (v1.3)
+
+* **Infinite Scroll Fix:** Removed the aggressive network interceptor that caused blank pages; the layout engine now handles filtering seamlessly.
+* **Micro-Shrink Engine:** Filtered images are now reduced to 1x1 pixels instead of being deleted, preventing Grok's infinite scroll from breaking.
+* **UI Cleanup:** Removed the manual "Refresh" button as the new layout engine maintains React synchronization automatically.
+
 ## ✨ Features
 
 * **Smart Filtering:** Automatically hides images in your "All" view if they are already saved in a specific folder. Simply visit your custom folders; the script automatically learns and memorizes which images are organized without any manual input.
@@ -26,12 +32,11 @@ https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 3. Return to the **"All"** tab. Upon pressing the  **👁️ button**, the script will hide the images you just memorized and collapse the empty spaces.
 4. Pressing it again will toggle the visibility of organized images back on.
 5. The script only monitors additions, so if you remove a creation from a folder, click the **Reset (🗑️) button** to clear the local memory, otherwise it'll remain hidden everywhere.
-6. Tagged Images, now hidden, will try to load, causing some small blinking artifacts before settling down. You can click the refresh button (or refresh the page) to stabilize the layout.
 
 ## 🗺️ Roadmap
 
 * **Scan entire folder:** Currently, folders need to be scrolled all the way down to lazy load all creations, working on a way to load them all without scrolling.
-* **Thumbnail Restructuring:** Improve the grid re-rendering logic to be less jittery and to stop relying on refreshes for stabilization.
+* **Thumbnail Restructuring:** Improve the grid re-rendering logic to be less jittery
   
 ***
 *Made with 🤍 for the Grok community.*
