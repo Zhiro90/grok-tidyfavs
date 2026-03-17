@@ -24,8 +24,6 @@
 
     let savedMemory = JSON.parse(localStorage.getItem('grok_tagged_memory') || '{}');
     let hideTagged = localStorage.getItem('grok_hide_tagged') !== 'false';
-    
-    let currentFolderState = undefined; 
 
     let currentFolderState = undefined;
     let zoomTimeout = null;
