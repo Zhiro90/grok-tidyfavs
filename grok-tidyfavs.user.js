@@ -36,7 +36,7 @@
         console.log(`%c[DEBUG ${type}] ${message}`, `color: ${color}; font-size: 11px;`);
     }
 
-    console.log("%c🚀 GROK TIDYFAVS V1.5 (INVISIBLE VOLUME HACK) LOADED", "color: #00ff00; font-weight: bold;");
+    console.log("%c🚀 GROK TIDYFAVS V1.3.2 (INVISIBLE VOLUME HACK) LOADED", "color: #00ff00; font-weight: bold;");
 
     // ==========================================
     // 🎨 CSS INJECTIONS (Global Scroll Lock)
