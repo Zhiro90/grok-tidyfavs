@@ -6,12 +6,12 @@ A lightweight UserScript for Grok/Imagine Favorites section that automatically h
 
 https://github.com/user-attachments/assets/bdbd1adc-d0f0-41ed-9d70-1cfe752b1559
 
-## 📢 What's New (v1.3)
+## 📢 What's New (v1.3.2)
 
-* **Infinite Scroll Fix:** Removed the aggressive network interceptor that caused blank pages; the layout engine now handles filtering seamlessly.
-* **Micro-Shrink Engine:** Filtered images are now reduced to 1x1 pixels instead of being deleted, preventing Grok's infinite scroll from breaking.
-* **UI Cleanup:** Removed the manual "Refresh" button as the new layout engine maintains React synchronization automatically.
-
+* **Modal Silence:** Fixed a bug where "ghost" thumbnails would flash in the background while viewing a creation in the large carousel/modal. The script now correctly pauses all background resizing when an image is actively opened.
+* **Spacer method:** Replaced the previous 1x1 pixel squish with a 10px, 100% transparent spacer. This gives Grok's virtual list enough physical volume to register the screen as "full," completely eliminating infinite-loop panics for users with massive (1k+) collections.
+* **UI Declutter:** Because the new Micro-Shrink engine is now 100% stable and no longer causes React to desync, the manual "Refresh" button was completely removed for a cleaner interface.
+  
 ## ✨ Features
 
 * **Smart Filtering:** Automatically hides images in your "All" view if they are already saved in a specific folder. Simply visit your custom folders; the script automatically learns and memorizes which images are organized without any manual input.
