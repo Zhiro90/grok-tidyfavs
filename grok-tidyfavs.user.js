@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Grok TidyFavs
 // @namespace    https://github.com/Zhiro90
-// @version      1.3.1
+// @version      1.3.2
 // @description  Hides tagged images in the "All" section of your saved imagine creations. 
 // @author       Zhiro90
 // @match        *://grok.com/*
@@ -20,7 +20,7 @@
     // ==========================================
     // 🎛️ CONFIGURACIÓN DE DESARROLLO
     // ==========================================
-    const DEBUG_MODE = false; // Cambiar a 'true' para ver la telemetría en consola
+    const DEBUG_MODE = false;
 
     let savedMemory = JSON.parse(localStorage.getItem('grok_tagged_memory') || '{}');
     let hideTagged = localStorage.getItem('grok_hide_tagged') !== 'false';
@@ -36,7 +36,7 @@
         console.log(`%c[DEBUG ${type}] ${message}`, `color: ${color}; font-size: 11px;`);
     }
 
-    console.log("%c🚀 GROK TIDYFAVS V1.3.1-TESTING (MUTATION OBSERVER DB) LOADED", "color: #00ff00; font-weight: bold;");
+    console.log("%c🚀 GROK TIDYFAVS V1.5 (INVISIBLE VOLUME HACK) LOADED", "color: #00ff00; font-weight: bold;");
 
     // ==========================================
     // 🎨 CSS INJECTIONS (Global Scroll Lock)
@@ -153,7 +153,8 @@
             return;
         }
         if (zoomTimeout) clearTimeout(zoomTimeout);
-        zoomTimeout = setTimeout(triggerZoom, 200);
+        // Grok recomendó subir esto a 300ms para darle respiro al Virtualizer
+        zoomTimeout = setTimeout(triggerZoom, 300);
     }
 
     function fireTripleTapSequence() {
@@ -162,12 +163,15 @@
         setTimeout(triggerZoom, 1200);
     }
 
+    // 🔥 EL HACK DE VOLUMEN INVISIBLE RECOMENDADO POR GROK
     function applyShrinkHide(wrapper) {
         if (wrapper.dataset.tidyShrink === 'true') return false;
 
         wrapper.style.removeProperty('display');
 
-        wrapper.style.setProperty('height', '1px', 'important');
+        // El sweet spot: 10px de altura para calmar a React, pero 100% invisible.
+        wrapper.style.setProperty('height', '10px', 'important');
+        wrapper.style.setProperty('min-height', '10px', 'important');
         wrapper.style.setProperty('width', '1px', 'important');
         wrapper.style.setProperty('overflow', 'hidden', 'important');
         wrapper.style.setProperty('opacity', '0', 'important');
@@ -184,6 +188,7 @@
         if (wrapper.dataset.tidyShrink !== 'true') return false;
 
         wrapper.style.removeProperty('height');
+        wrapper.style.removeProperty('min-height');
         wrapper.style.removeProperty('width');
         wrapper.style.removeProperty('overflow');
         wrapper.style.removeProperty('opacity');
@@ -209,8 +214,7 @@
         for (const mutation of mutations) {
             if (mutation.type === 'childList') {
                 for (const node of mutation.addedNodes) {
-                    if (node.nodeType === 1) { // ELEMENT_NODE
-                        // Check if the node is a card itself or contains cards
+                    if (node.nodeType === 1) {
                         const cards = node.classList.contains('group/media-post-masonry-card')
                             ? [node]
                             : node.querySelectorAll('.group\\/media-post-masonry-card');
@@ -219,7 +223,6 @@
                             const wrapper = card.parentElement;
                             const mediaId = getMediaId(card);
 
-                            // ZERO-BLINK LOGIC: Instantly squish it before browser paints
                             if (mediaId && hideTagged && isAllView && savedMemory[mediaId]) {
                                 applyShrinkHide(wrapper);
                                 needsSync = true;
@@ -233,12 +236,11 @@
         if (needsSync) {
             logDebug("OBSERVER", "Squished hidden elements instantly before paint.");
             if (window.scrollY === 0 && isAllView) {
-                window.scrollTo(0, 2); // Nudge hack to prevent infinite React thrashing
+                window.scrollTo(0, 2);
             }
         }
     });
 
-    // Start observing immediately
     domObserver.observe(document.body, { childList: true, subtree: true });
 
     // ==========================================
@@ -272,19 +274,16 @@
             if (!mediaId) return;
 
             if (!isAllView) {
-                // Learning Mode
                 if (removeShrinkHide(wrapper)) needsLayoutFix = true;
                 if (!savedMemory[mediaId]) {
                     savedMemory[mediaId] = folderName;
                     learnedCount++;
                 }
             } else if (hideTagged && savedMemory[mediaId]) {
-                // Failsafe (Most are handled by MutationObserver now)
                 if (applyShrinkHide(wrapper)) needsLayoutFix = true;
             } else {
                 if (removeShrinkHide(wrapper)) needsLayoutFix = true;
 
-                // Track height for container brake
                 if (hideTagged && isAllView && containerRect && wrapper.dataset.tidyShrink !== 'true') {
                     const reactTransformY = parseFloat(wrapper.style.translate?.split(' ')[1] || "0");
                     const relativeBottom = reactTransformY + wrapper.getBoundingClientRect().height;
@@ -423,5 +422,5 @@
             document.body.classList.add('tidy-scroll-lock');
             updateDOM();
         }
-    }, 150); // El reloj sigue vivo, pero solo para actualizar memoria y limpiar bordes
+    }, 150);
 })();
