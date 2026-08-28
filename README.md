@@ -1,3 +1,11 @@
+> ⚠️ **ARCHIVED PROJECT (August 2026)**
+> 
+> Grok has officially removed the native folders/tags feature from their UI, so now all creations into a single unified view. Since this script was based on this now removed feature, **Grok TidyFavs has lost its purpose and is now indefinitely obsolete.**
+> 
+> I have unlisted the script from GreasyFork to prevent broken installs and archived this repository. The code remains here for reference (if you are dealing with React Virtual List Overloads, the *Micro-Shrink* engine inside `grok-tidyfavs.user.js` might still be a useful read).
+> 
+> Massive thanks to everyone who reported bugs, tested the fixes, and helped tame the infinite scroller. It was a fun ride while it lasted.
+
 # 🧹 Grok TidyFavs
 
 [![Install Script](https://img.shields.io/badge/Install-UserScript-232323?style=for-the-badge&logo=javascript)](https://raw.githubusercontent.com/Zhiro90/grok-tidyfavs/main/grok-tidyfavs.user.js) [![Downloads](https://img.shields.io/greasyfork/dt/568274?style=for-the-badge&color=2b5b84)](https://greasyfork.org/scripts/568274) [![GreasyFork](https://img.shields.io/badge/GreasyFork-Page-c1282d?style=for-the-badge)](https://greasyfork.org/scripts/568274) [![License](https://img.shields.io/badge/License-MIT-3a7a40?style=for-the-badge)](https://github.com/Zhiro90/grok-tidyfavs/blob/main/LICENSE)
